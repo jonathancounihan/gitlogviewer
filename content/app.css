@@ -1,0 +1,78 @@
+@media (min-width: 1200px){
+.container {
+    width: 1600px;
+}
+.jumbotron{
+    padding-top: 0px;
+    padding-bottom: 10px;
+}
+}
+
+.panel-footer{
+    min-height: 30px;
+    padding-bottom: 5px;
+    padding-top: 5px;
+}
+
+.authorname{
+    font-style: italic;
+    font-weight: bold;
+}
+
+.panel-default > .panel-heading.version-dev{
+    background-color: lightpink;
+}
+.panel-default > .panel-heading.version-test{
+    background-color:  lightblue;
+}
+.panel-default > .panel-heading.version-production{
+    background-color:lightgreen;
+}
+
+div.version-dev{
+    background-color: lightpink;
+}
+div.version-test{
+    background-color: lightblue;
+}
+div.version-production{
+    background-color: lightgreen;
+}
+
+.inline-headers h2, .inline-headers h3, .inline-headers h6 {
+  display: inline-block;
+  vertical-align: baseline;
+}
+
+.inline-headers h6 {
+  margin-bottom: 0px;
+}
+
+.changesAhead{
+margin-top:40px;
+}
+
+h3.versionNumber{
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.panel-inner:last-child {
+    margin-bottom: 0px;
+}
+
+.environment{
+    overflow-y: scroll;
+    max-height: 1000px;
+    overflow-x: hidden;
+}
+
+.headerInTheMiddle{
+    width: 675px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.versionGrouping {
+    margin-top: 10px;
+}

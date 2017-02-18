@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Git Change Log Viewer</title>
+
+	<script src="scripts/jquery.min.js"></script>
+	<script src="scripts/moment.js"></script>
+	<script src="scripts/moment-duration-format.js"></script>
+	<script src="scripts/linq.min.js"></script>
+	<script src="scripts/knockout-3.4.0.js"></script>
+	<script src="scripts/knockout-projections.min.js"></script>
+	<script src="scripts/knockout.custom.js"></script>
+	<script src="scripts/extensions.js"></script>
+
+	<link rel="stylesheet" href="content/bootstrap.min.css" type="text/css" />
+	<script src="scripts/bootstrap.min.js"></script>
+
+	<link rel="stylesheet" href="content/app.css" type="text/css" />
+	<script src="scripts/app.js"></script>
+
+	<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+	<!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+	<div class="container" id="changeLogDashboard">
+		<div class="jumbotron">
+			<h1>Git Change Log Viewer</h1>
+				<p class="lead">
+				A basic web view of a git log in JSON <a data-bind="hidden: IsLoading" href="#"><span class="glyphicon glyphicon-save download"><span></a>
+				</p>
+		</div>
+		<div class="row" data-bind="visible: IsLoading">
+			<div class="col-md-offset-6 col-md-4">
+				Loading...
+			</div>
+		</div>
+		<div data-bind="hidden: IsLoading">
+			<div data-bind="visible: UseVersionNumbers">
+				<div class="row">
+					<div class="col-md-4 version-dev inline-headers">
+						<h2>Development - <span data-bind="text: DevVersion"></span></h2>
+						<h6 data-bind="text: ChangesAheadOfTest" class="changesAhead pull-right"></h6>
+					</div>
+					<div class="col-md-4 version-test inline-headers">
+						<h2>Test - <span data-bind="text: TestVersion"></span></h2>
+						<h6 data-bind="text: ChangesAheadOfProduction" class="changesAhead pull-right"></h6>
+					</div>
+					<div class="col-md-4 version-production inline-headers">
+						<h2>Production - <span data-bind="text: ProductionVersion"></span></h2>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-4 environment">
+						<!-- ko foreach: { data: DevVersions, as: 'v' }-->
+						<div data-bind="template: { name: 'versionChanges', data: v }" class="versionGrouping">
+						</div>
+						<!-- /ko -->
+					</div>
+					<div class="col-md-4 environment">
+						<!-- ko foreach: { data: TestVersions, as: 'v' }-->
+						<div data-bind="template: { name: 'versionChanges', data: v }" class="versionGrouping">
+						</div>
+						<!-- /ko -->
+					</div>
+					<div class="col-md-4 environment">
+						<!-- ko foreach: { data: ProductionVersions, as: 'v' }-->
+						<div data-bind="template: { name: 'versionChanges', data: v }" class="versionGrouping">
+						</div>
+						<!-- /ko -->
+					</div>
+				</div>
+			</div>
+			<div data-bind="visible: UseHashIds">
+				<div class="row">
+					<div class="col-md-4 inline-headers">
+						<h2>Commits - <span data-bind="text: HashCommits().length"></span></h2>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-4 environment">
+						<!-- ko foreach: { data: HashCommits, as: 'v' }-->
+						<div data-bind="template: { name: 'hashChanges', data: v }" class="versionGrouping">
+						</div>
+						<!-- /ko -->
+					</div>
+				</div>
+			</div>
+		</div>
+</body>
+
+<script type="text/html" id="hashChanges">
+	<div class="panel panel-default">
+		<div class="panel-heading inline-headers" data-bind="css: $data.hashcss">
+			<h3 data-bind="text: $data.shorthashId" class="versionNumber"></h3>
+			<h6 data-bind="versiondatetime: $data.date" class="pull-right"></h6>
+		</div>
+		<div class="panel-body">
+			<div class="panel panel-default panel-inner">
+				<div class="panel-body" data-bind="html: $data.HtmlBody"></div>
+				<div class="panel-footer">
+					<div class="pull-left authorname" data-bind="text: $data.author"></div>
+					<div class="pull-right"><a target="_blank" data-bind="attr: { href: $data.commitUrl }">view</a></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</script>
+
+<script type="text/html" id="versionChanges">
+	<div class="panel panel-default">
+		<div class="panel-heading inline-headers" data-bind="css: $data.versioncss">
+			<h3 data-bind="text: $data.version" class="versionNumber"></h3>
+			<h6 data-bind="text: $data.CommitCount"></h6>
+			<h6 data-bind="versiondatetime: $data.date" class="pull-right"></h6>
+		</div>
+		<div class="panel-body">
+			<!-- ko foreach: { data: $data.commits, as: 'commit' }-->
+			<div class="panel panel-default panel-inner">
+				<div class="panel-body" data-bind="html: commit.HtmlBody"></div>
+				<div class="panel-footer">
+					<div class="pull-left authorname" data-bind="text: commit.author"></div>
+					<div class="pull-right"><a target="_blank" data-bind="attr: { href: commit.commitUrl }">view</a></div>
+				</div>
+			</div>
+			<!-- /ko -->
+		</div>
+	</div>
+</script>
+
+<script>
+	$(function () {
+		ko.options.deferUpdates = true;
+		var root = '/GitLogViewer';
+
+		function executeAjaxLoad(url, thenHandler) {
+			return $.ajax({
+				url: url,
+				dataType: 'json',
+				contentType: 'application/json; charset=utf-8',
+				cache: false
+			}).then(thenHandler).fail(function(jqXHR, textStatus, errorThrown){
+				console.log("Fail...");
+			});
+		}
+
+		window.ChangeLog = ChangeLog();
+		window.ChangeLog.IsLoading(true);
+		window.ChangeLog.Options({
+			CommitUrlBase: 'https://github.com/Microsoft/vscode/commit/',
+			IssueUrlBase: 'https://github.com/Microsoft/vscode/issues/'
+		});
+		window.ChangeLog.UseHashIds(true);
+
+		executeAjaxLoad(root + '/changelog.json', function (commitArr) {
+			window.ChangeLog.SetCommitDatasource(commitArr);
+		});
+
+		executeAjaxLoad(root + '/environments.json', function (data) {
+			// TODO set environement values.
+			window.ChangeLog.HashIds({ Development: data.Development });
+		});
+
+		ko.applyBindings(window.ChangeLog, $("#changeLogDashboard")[0]);
+
+		$(document).on('click', 'span.download', function (event) {
+			event.preventDefault();
+			window.ChangeLog.DownloadData();
+		});
+
+		window.setTimeout(function() {
+			window.location.reload();
+		}, 1000 * 60 * 10);
+});
+
+</script>
+
+</html>
